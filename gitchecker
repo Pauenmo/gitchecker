@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Usage function
+usage() {
+  echo "Usage: $0 [-r][-q][-h] <path>"
+  echo "  -r    Check all non-hidden subdirectories recursively"
+  echo "  -q    Quiet mode: only showing if any repos have uncommitted files or pending pushes"
+  echo "  -h    Help"
+  exit 1
+}
+
+# Parse arguments
+RECURSIVE=false
+QUIET=false
+
+while getopts ":rqh" opt; do
+  case $opt in
+    r)
+      RECURSIVE=true
+      ;;
+    q)
+      QUIET=true
+      ;;
+    h)
+      echo "git-checker is a utility to check all the repositories within <path> for whether they have files that are not committed, or commits that are not pushed.
+
+      Usage: $0 [-r][-q][-h] <path>
+        
+      Use the -r flag to check all non-hidden subdirectories recursively.
+
+      Use the -q flag for quiet mode, which will only show if any repositories have uncommitted files or pending pushes."
+      exit 1
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+# Shift processed options, leaving only the path argument
+shift $((OPTIND - 1))
+
+# Validate input path
+if [ -z "$1" ]; then
+  usage
+fi
+
+TARGET_PATH="$1"
+
+if [ ! -d "$TARGET_PATH" ]; then
+  echo "The provided path is not a directory or does not exist."
+  exit 1
+fi
+
+# Function to check if a folder is a Git repository and its status
+check_git_status() {
+  local folder="$1"
+
+  if [ -d "$folder/.git" ]; then
+    if ! $QUIET; then
+      echo "Checking repository: $folder"
+    fi
+
+    # Change to the directory
+    cd "$folder" || return
+
+    # Check for uncommitted changes
+    if [[ -n $(git status --porcelain) ]]; then
+      echo "  - Uncommitted changes or untracked files detected at: $folder"
+    fi
+
+    # Check for unpushed commits
+    if [[ -n $(git log origin/$(git branch --show-current)..HEAD 2>/dev/null) ]]; then
+      echo "  - Unpushed commits detected at: $folder"
+    fi
+
+    # Return to the previous directory
+    cd - >/dev/null || return
+  fi
+}
+
+# Main logic
+if $RECURSIVE; then
+  # Recursively find all directories
+  find "$TARGET_PATH" -type d -name ".git" | while IFS= read -r gitdir; do
+    # Get the parent directory of the .git folder
+    repo_dir=$(dirname "$gitdir")
+    # Check if the repo_dir or any of its parent directories is hidden
+    if [[ "$repo_dir" =~ /(\.[^/]+)(/|$) ]]; then
+      continue
+    fi
+    check_git_status "$repo_dir"
+  done
+else
+  # Only check directories at depth 1
+  for folder in "$TARGET_PATH"/*/; do
+    check_git_status "$folder"
+  done
+fi
+
