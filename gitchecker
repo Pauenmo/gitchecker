@@ -2,7 +2,7 @@
 
 # Usage function
 usage() {
-  echo "Usage: $0 [-r][-q][-h] <path>"
+  echo "Usage: gitchecker [-r][-q][-h] <path>"
   echo "  -r    Check all non-hidden subdirectories recursively"
   echo "  -q    Quiet mode: only showing if any repos have uncommitted files or pending pushes"
   echo "  -h    Help"
@@ -24,7 +24,7 @@ while getopts ":rqh" opt; do
     h)
       echo "git-checker is a utility to check all the repositories within <path> for whether they have files that are not committed, or commits that are not pushed.
 
-      Usage: $0 [-r][-q][-h] <path>
+      Usage: gitchecker [-r][-q][-h] <path>
         
       Use the -r flag to check all non-hidden subdirectories recursively.
 
