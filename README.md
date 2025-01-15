@@ -4,7 +4,7 @@ Utility to batch checking git repositories for uncommitted files or pending push
 
 It can be useful when switching between computers, to check that all the work has been uploaded.
 
-Usage: gitchecker [-r][-q][-h] <path>
+Usage: gitchecker [-r][-q][-h] \<path\>
 
 By default, gitchecker will check all the folders inside the given path. 
 
@@ -15,5 +15,3 @@ Use the -q flag to run quietly, so that only those repositories with uncommitted
 ## Installation
 
 sudo wget -O /usr/local/bin/gitchecker https://raw.githubusercontent.com/Pauenmo/gitchecker/refs/heads/main/gitchecker && sudo chmod +x /usr/local/bin/gitchecker
-
-
